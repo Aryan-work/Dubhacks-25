@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, Zap, Brain, Target, Play, Volume2, BarChart3, Atom, Eye } from 'lucide-react';
+import { Upload, FileText, Zap, Brain, Target, BarChart3, Atom, Eye } from 'lucide-react';
 import './QuantumAnalysisPage.css';
 import MoleculeViewer from '../viewer/MoleculeViewer';
 import statsigService from '../services/statsigService';
@@ -12,8 +12,6 @@ function QuantumAnalysisPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiSummary, setAiSummary] = useState('');
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
-  const [audioUrl, setAudioUrl] = useState(null);
-  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   
   // Quantum simulation configuration
   const [simulationConfig, setSimulationConfig] = useState({
@@ -203,20 +201,6 @@ function QuantumAnalysisPage() {
     }
   };
 
-  const generateVoiceNarration = async () => {
-    if (!aiSummary) return;
-
-    setIsGeneratingAudio(true);
-
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setAudioUrl("https://example.com/quantum-audio.mp3");
-    } catch (error) {
-      console.error('Voice generation failed:', error);
-    } finally {
-      setIsGeneratingAudio(false);
-    }
-  };
 
   // Helper function to load analog structure into mini viewer
   const loadAnalogStructure = (analogIndex, cifContent) => {
@@ -453,30 +437,6 @@ function QuantumAnalysisPage() {
           <div className="results-section" ref={resultsRef}>
             <div className="results-header">
               <h2>⚛️ Quantum Chemistry Results</h2>
-              <div className="result-actions">
-                <button 
-                  className="voice-btn"
-                  onClick={generateVoiceNarration}
-                  disabled={!aiSummary || isGeneratingAudio}
-                >
-                  {isGeneratingAudio ? (
-                    <>
-                      <Volume2 className="spinning" size={16} />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Play size={16} />
-                      Quantum Voice
-                    </>
-                  )}
-                </button>
-                {audioUrl && (
-                  <audio controls src={audioUrl} className="audio-player">
-                    Your browser does not support the audio element.
-                  </audio>
-                )}
-              </div>
             </div>
 
             {/* Professional Quantum-AI Drug Discovery Coach Output */}

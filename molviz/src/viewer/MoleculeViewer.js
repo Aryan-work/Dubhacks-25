@@ -138,10 +138,10 @@ export default function MoleculeViewer() {
         console.log('Adding model with format:', fmt);
         const model = v.addModel(content, fmt);
         currentModelRef.current = { model, content, format: fmt };
-        
+
         // Set background and apply default representation
         v.setBackgroundColor(0x000000);
-        applyRepresentation(v, 'cartoon');
+        applyRepresentation(v, 'ballstick');
         
         // Force immediate rendering with multiple render calls
         v.zoomTo();
