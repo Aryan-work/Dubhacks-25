@@ -342,3 +342,59 @@ label[for="mol-name-search"] {
   display: block;
   text-align: left;
 }
+
+/* Search input group */
+.search-input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.search-input-group input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+/* Test buttons */
+.test-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.test-btn {
+  background: linear-gradient(90deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(40, 167, 69, 0.2);
+}
+
+.test-btn:hover {
+  background: linear-gradient(90deg, #20c997, #28a745);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.test-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(40, 167, 69, 0.2);
+}
+
+/* Search error */
+.search-error {
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 6px;
+}

@@ -121,55 +121,67 @@ export default function ViewerPage() {
         {/* Search by molecule name using Gemini/RCSB */}
         <div className="search-section">
           <label htmlFor="mol-name-search">Find by Molecule Name (AI):</label>
-          <input
-            id="mol-name-search"
-            type="text"
-            value={searchName}
-            onChange={e => setSearchName(e.target.value)}
-            placeholder="e.g. hemoglobin, insulin"
-            disabled={searchLoading}
-          />
-          <button
-            className='search-btn'
-            disabled={!searchName.trim() || searchLoading}
-            onClick={async () => {
-              setSearchLoading(true);
-              setSearchError('');
-              console.log("Starting search for:", searchName.trim());
-              try {
-                const pdbId = await geminiFindPdbId(searchName.trim());
-                console.log("Found PDB ID:", pdbId);
-                if (!pdbId) throw new Error('No matching structure found.');
-                // Fetch mmCIF from RCSB
-                console.log("Fetching structure from RCSB...");
-                const cifResp = await fetch(`https://files.rcsb.org/download/${pdbId}.cif`);
-                if (!cifResp.ok) throw new Error('Failed to fetch mmCIF.');
-                const cifText = await cifResp.text();
-                console.log("Structure fetched, loading into viewer...");
-                setPdbText(cifText);
-                setFileName(`${pdbId}.cif`);
-                // Auto-load into viewer
-                window.dispatchEvent(new CustomEvent('loadStructure', { detail: { content: cifText, name: `${pdbId}.cif`, format: 'cif' } }));
-              } catch (err) {
-                console.error("Search error:", err);
-                setSearchError(err.message || 'Search failed.');
-              } finally {
-                setSearchLoading(false);
-              }
-            }}
-          >
-            {searchLoading ? 'Searching...' : 'Find & Load'}
-          </button>
-          <button
-            className='test-btn'
-            onClick={() => {
-              setSearchName('insulin');
-              console.log("Test button clicked - set search to insulin");
-            }}
-            style={{marginLeft: '10px', backgroundColor: '#28a745', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px'}}
-          >
-            Test (Insulin)
-          </button>
+          <div className="search-input-group">
+            <input
+              id="mol-name-search"
+              type="text"
+              value={searchName}
+              onChange={e => setSearchName(e.target.value)}
+              placeholder="e.g. hemoglobin, insulin"
+              disabled={searchLoading}
+            />
+            <button
+              className='search-btn'
+              disabled={!searchName.trim() || searchLoading}
+              onClick={async () => {
+                setSearchLoading(true);
+                setSearchError('');
+                console.log("Starting search for:", searchName.trim());
+                try {
+                  const pdbId = await geminiFindPdbId(searchName.trim());
+                  console.log("Found PDB ID:", pdbId);
+                  if (!pdbId) throw new Error('No matching structure found.');
+                  // Fetch mmCIF from RCSB
+                  console.log("Fetching structure from RCSB...");
+                  const cifResp = await fetch(`https://files.rcsb.org/download/${pdbId}.cif`);
+                  if (!cifResp.ok) throw new Error('Failed to fetch mmCIF.');
+                  const cifText = await cifResp.text();
+                  console.log("Structure fetched, loading into viewer...");
+                  setPdbText(cifText);
+                  setFileName(`${pdbId}.cif`);
+                  // Auto-load into viewer
+                  window.dispatchEvent(new CustomEvent('loadStructure', { detail: { content: cifText, name: `${pdbId}.cif`, format: 'cif' } }));
+                } catch (err) {
+                  console.error("Search error:", err);
+                  setSearchError(err.message || 'Search failed.');
+                } finally {
+                  setSearchLoading(false);
+                }
+              }}
+            >
+              {searchLoading ? 'Searching...' : 'Find & Load'}
+            </button>
+          </div>
+          <div className="test-buttons">
+            <button
+              className='test-btn'
+              onClick={() => {
+                setSearchName('insulin');
+                console.log("Test button clicked - set search to insulin");
+              }}
+            >
+              Test (Insulin)
+            </button>
+            <button
+              className='test-btn'
+              onClick={() => {
+                setSearchName('hemoglobin');
+                console.log("Test button clicked - set search to hemoglobin");
+              }}
+            >
+              Test (Hemoglobin)
+            </button>
+          </div>
           {searchError && <div className="search-error">{searchError}</div>}
         </div>
         <input type="file" accept=".pdb,.ent,.txt,.cif,.mmcif" onChange={handleFile} />
