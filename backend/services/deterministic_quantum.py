@@ -338,3 +338,187 @@ class DeterministicQuantumChemistry:
             "Thiophene Analog": "Molecular orbital analysis shows 14% improvement in lipophilicity while maintaining key binding interactions"
         }
         return advantage_map.get(analog_name, "Quantum calculations show improved molecular properties")
+    
+    def generate_analog_smiles(self, base_smiles: str, analog_index: int) -> str:
+        """Generate different SMILES structures for each analog type"""
+        try:
+            base_mol = Chem.MolFromSmiles(base_smiles)
+            if not base_mol:
+                return base_smiles
+            
+            # Define different modifications for each analog type
+            modifications = [
+                # Fluorinated Analog - Add fluorine to aromatic ring
+                lambda mol: self._add_fluorine_substitution(mol),
+                # Cyclopropyl Analog - Replace methyl with cyclopropyl
+                lambda mol: self._add_cyclopropyl_substitution(mol),
+                # Hydroxylated Analog - Add hydroxyl group
+                lambda mol: self._add_hydroxyl_substitution(mol),
+                # Chiral Analog - Add chiral center
+                lambda mol: self._add_chiral_center(mol),
+                # Pyridine Analog - Replace benzene with pyridine
+                lambda mol: self._add_pyridine_substitution(mol),
+                # Triazole Analog - Add triazole ring
+                lambda mol: self._add_triazole_substitution(mol),
+                # Sulfonamide Analog - Add sulfonamide group
+                lambda mol: self._add_sulfonamide_substitution(mol),
+                # Thiophene Analog - Replace benzene with thiophene
+                lambda mol: self._add_thiophene_substitution(mol)
+            ]
+            
+            if analog_index < len(modifications):
+                modified_mol = modifications[analog_index](base_mol)
+                if modified_mol:
+                    return Chem.MolToSmiles(modified_mol)
+            
+            return base_smiles
+            
+        except Exception as e:
+            logger.warning(f"Failed to generate analog SMILES: {e}")
+            return base_smiles
+    
+    def _add_fluorine_substitution(self, mol):
+        """Add fluorine substitution to aromatic ring"""
+        try:
+            # Find aromatic carbons and add fluorine
+            for atom in mol.GetAtoms():
+                if atom.GetSymbol() == 'C' and atom.GetIsAromatic():
+                    # Add fluorine to this carbon
+                    mol = Chem.RWMol(mol)
+                    mol.AddAtom(Chem.Atom(9))  # Fluorine
+                    mol.AddBond(atom.GetIdx(), mol.GetNumAtoms()-1, Chem.BondType.SINGLE)
+                    return mol.GetMol()
+            return mol
+        except:
+            return mol
+    
+    def _add_cyclopropyl_substitution(self, mol):
+        """Add cyclopropyl ring substitution"""
+        try:
+            # Find methyl groups and replace with cyclopropyl
+            for atom in mol.GetAtoms():
+                if atom.GetSymbol() == 'C' and atom.GetDegree() == 1:
+                    # Replace with cyclopropyl
+                    mol = Chem.RWMol(mol)
+                    # Add cyclopropyl ring
+                    c1 = mol.AddAtom(Chem.Atom(6))
+                    c2 = mol.AddAtom(Chem.Atom(6))
+                    c3 = mol.AddAtom(Chem.Atom(6))
+                    mol.AddBond(c1, c2, Chem.BondType.SINGLE)
+                    mol.AddBond(c2, c3, Chem.BondType.SINGLE)
+                    mol.AddBond(c3, c1, Chem.BondType.SINGLE)
+                    mol.AddBond(atom.GetIdx(), c1, Chem.BondType.SINGLE)
+                    return mol.GetMol()
+            return mol
+        except:
+            return mol
+    
+    def _add_hydroxyl_substitution(self, mol):
+        """Add hydroxyl group"""
+        try:
+            # Add hydroxyl to aromatic carbon
+            for atom in mol.GetAtoms():
+                if atom.GetSymbol() == 'C' and atom.GetIsAromatic():
+                    mol = Chem.RWMol(mol)
+                    mol.AddAtom(Chem.Atom(8))  # Oxygen
+                    mol.AddBond(atom.GetIdx(), mol.GetNumAtoms()-1, Chem.BondType.SINGLE)
+                    return mol.GetMol()
+            return mol
+        except:
+            return mol
+    
+    def _add_chiral_center(self, mol):
+        """Add chiral center"""
+        try:
+            # Add substituent to create chiral center
+            for atom in mol.GetAtoms():
+                if atom.GetSymbol() == 'C' and atom.GetDegree() == 2:
+                    mol = Chem.RWMol(mol)
+                    # Add different substituents to create chirality
+                    mol.AddAtom(Chem.Atom(6))  # Carbon
+                    mol.AddAtom(Chem.Atom(8))  # Oxygen
+                    mol.AddBond(atom.GetIdx(), mol.GetNumAtoms()-2, Chem.BondType.SINGLE)
+                    mol.AddBond(atom.GetIdx(), mol.GetNumAtoms()-1, Chem.BondType.SINGLE)
+                    return mol.GetMol()
+            return mol
+        except:
+            return mol
+    
+    def _add_pyridine_substitution(self, mol):
+        """Replace benzene with pyridine"""
+        try:
+            # Find aromatic ring and replace one carbon with nitrogen
+            for atom in mol.GetAtoms():
+                if atom.GetSymbol() == 'C' and atom.GetIsAromatic():
+                    mol = Chem.RWMol(mol)
+                    atom.SetAtomicNum(7)  # Change to nitrogen
+                    return mol.GetMol()
+            return mol
+        except:
+            return mol
+    
+    def _add_triazole_substitution(self, mol):
+        """Add triazole ring"""
+        try:
+            # Add triazole ring
+            mol = Chem.RWMol(mol)
+            n1 = mol.AddAtom(Chem.Atom(7))  # Nitrogen
+            c2 = mol.AddAtom(Chem.Atom(6))  # Carbon
+            n3 = mol.AddAtom(Chem.Atom(7))  # Nitrogen
+            n4 = mol.AddAtom(Chem.Atom(7))  # Nitrogen
+            c5 = mol.AddAtom(Chem.Atom(6))  # Carbon
+            
+            # Create triazole ring
+            mol.AddBond(n1, c2, Chem.BondType.DOUBLE)
+            mol.AddBond(c2, n3, Chem.BondType.SINGLE)
+            mol.AddBond(n3, n4, Chem.BondType.DOUBLE)
+            mol.AddBond(n4, c5, Chem.BondType.SINGLE)
+            mol.AddBond(c5, n1, Chem.BondType.SINGLE)
+            
+            # Attach to existing molecule
+            for atom in mol.GetAtoms():
+                if atom.GetSymbol() == 'C' and atom.GetDegree() == 1:
+                    mol.AddBond(atom.GetIdx(), n1, Chem.BondType.SINGLE)
+                    break
+            
+            return mol.GetMol()
+        except:
+            return mol
+    
+    def _add_sulfonamide_substitution(self, mol):
+        """Add sulfonamide group"""
+        try:
+            # Add sulfonamide group
+            mol = Chem.RWMol(mol)
+            s = mol.AddAtom(Chem.Atom(16))  # Sulfur
+            o1 = mol.AddAtom(Chem.Atom(8))  # Oxygen
+            o2 = mol.AddAtom(Chem.Atom(8))  # Oxygen
+            n = mol.AddAtom(Chem.Atom(7))   # Nitrogen
+            
+            # Create sulfonamide
+            mol.AddBond(s, o1, Chem.BondType.DOUBLE)
+            mol.AddBond(s, o2, Chem.BondType.DOUBLE)
+            mol.AddBond(s, n, Chem.BondType.SINGLE)
+            
+            # Attach to existing molecule
+            for atom in mol.GetAtoms():
+                if atom.GetSymbol() == 'C' and atom.GetDegree() == 1:
+                    mol.AddBond(atom.GetIdx(), s, Chem.BondType.SINGLE)
+                    break
+            
+            return mol.GetMol()
+        except:
+            return mol
+    
+    def _add_thiophene_substitution(self, mol):
+        """Replace benzene with thiophene"""
+        try:
+            # Find aromatic carbon and replace with sulfur
+            for atom in mol.GetAtoms():
+                if atom.GetSymbol() == 'C' and atom.GetIsAromatic():
+                    mol = Chem.RWMol(mol)
+                    atom.SetAtomicNum(16)  # Change to sulfur
+                    return mol.GetMol()
+            return mol
+        except:
+            return mol

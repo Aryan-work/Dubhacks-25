@@ -207,9 +207,10 @@ _atom_site.B_iso_or_equiv
                 base_mol = Chem.MolFromSmiles(input_data.molecular_data)
                 analogs = deterministic_quantum.calculate_molecular_analogs(base_mol, 8)
                 
-                # Generate CIF content for each analog
+                # Generate CIF content for each analog with different structures
                 for i, analog in enumerate(analogs):
-                    analog_smiles = input_data.molecular_data  # Use same structure for visualization
+                    # Generate different SMILES for each analog type
+                    analog_smiles = deterministic_quantum.generate_analog_smiles(input_data.molecular_data, i)
                     analog_mol = Chem.MolFromSmiles(analog_smiles)
                     if analog_mol:
                         analog_mol = Chem.AddHs(analog_mol)
