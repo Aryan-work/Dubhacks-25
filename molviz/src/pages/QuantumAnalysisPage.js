@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import { Upload, FileText, Zap, Brain, Target, Play, Volume2, BarChart3, Atom, Eye } from 'lucide-react';
 import './QuantumAnalysisPage.css';
 import MoleculeViewer from '../viewer/MoleculeViewer';
+import statsigService from '../services/statsigService';
 
 function QuantumAnalysisPage() {
   const [inputType, setInputType] = useState('smiles');
@@ -64,6 +65,9 @@ function QuantumAnalysisPage() {
 
     setIsAnalyzing(true);
 
+    // Log analysis start
+    statsigService.logMolecularAnalysis(molecularInput, inputType, null);
+
     try {
       // Call backend API for quantum simulation
       const response = await fetch('https://molecular-analysis-api-7def38974c94.herokuapp.com/api/quantum_simulate', {
@@ -86,6 +90,20 @@ function QuantumAnalysisPage() {
       const results = await response.json();
 
       setAnalysisResults(results);
+
+      // Log successful analysis
+      statsigService.logQuantumSimulation(simulationConfig, results.quantum_results);
+      statsigService.logEvent('molecular_analysis_completed', {
+        input_type: inputType,
+        molecular_data_length: molecularInput.length,
+        results_summary: {
+          homo_lumo_gap: results.quantum_results?.homo_lumo_gap,
+          binding_energy: results.quantum_results?.binding_energy,
+          analogs_count: results.quantum_results?.molecular_analogs?.length || 0
+        },
+        timestamp: new Date().toISOString()
+      });
+
       // scroll-to-results (small delay so DOM renders)
       setTimeout(() => {
         try {
@@ -135,6 +153,14 @@ function QuantumAnalysisPage() {
 
     } catch (error) {
       console.error('Quantum analysis failed:', error);
+      
+      // Log error
+      statsigService.logError(error, {
+        context: 'molecular_analysis',
+        input_type: inputType,
+        molecular_data: molecularInput.substring(0, 50)
+      });
+      
       alert(`Analysis failed: ${error.message}. Make sure the backend server is running on port 8000.`);
     } finally {
       setIsAnalyzing(false);
