@@ -174,7 +174,11 @@ class DeterministicQuantumChemistry:
         }
     
     def calculate_molecular_analogs(self, base_mol, num_analogs: int = 8) -> List[Dict[str, Any]]:
-        """Calculate deterministic molecular analogs"""
+        """Calculate deterministic molecular analogs with realistic binding affinities"""
+        
+        # Calculate base molecular properties for realistic binding affinity
+        base_props = self._calculate_molecular_properties(base_mol)
+        base_binding = base_props.get("binding_energy", -8.0)  # Use calculated binding energy
         
         analogs = []
         analog_types = [
@@ -182,7 +186,7 @@ class DeterministicQuantumChemistry:
                 "name": "Fluorinated Analog",
                 "modification": "C-3 Fluorine substitution",
                 "base_gap": 4.2,
-                "base_affinity": -8.5,
+                "affinity_modifier": 0.3,  # Fluorine typically improves binding
                 "base_likeness": 0.85,
                 "dipole_base": 2.3,
                 "polar_base": 15.2,
@@ -192,7 +196,7 @@ class DeterministicQuantumChemistry:
                 "name": "Cyclopropyl Analog", 
                 "modification": "Methyl → Cyclopropyl replacement",
                 "base_gap": 4.1,
-                "base_affinity": -9.2,
+                "affinity_modifier": 0.8,  # Cyclopropyl often improves binding
                 "base_likeness": 0.88,
                 "dipole_base": 2.1,
                 "polar_base": 16.8,
@@ -202,7 +206,7 @@ class DeterministicQuantumChemistry:
                 "name": "Hydroxylated Analog",
                 "modification": "C-7 Hydroxyl addition",
                 "base_gap": 4.3,
-                "base_affinity": -8.8,
+                "affinity_modifier": 0.2,  # Hydroxyl can improve H-bonding
                 "base_likeness": 0.82,
                 "dipole_base": 3.2,
                 "polar_base": 18.5,
@@ -212,7 +216,7 @@ class DeterministicQuantumChemistry:
                 "name": "Chiral Analog",
                 "modification": "Stereocenter introduction at C-4",
                 "base_gap": 4.0,
-                "base_affinity": -9.5,
+                "affinity_modifier": 0.5,  # Chiral centers can improve selectivity
                 "base_likeness": 0.90,
                 "dipole_base": 2.8,
                 "polar_base": 17.3,
@@ -222,7 +226,7 @@ class DeterministicQuantumChemistry:
                 "name": "Pyridine Analog",
                 "modification": "Benzene → Pyridine replacement",
                 "base_gap": 4.4,
-                "base_affinity": -8.2,
+                "affinity_modifier": -0.1,  # Pyridine may slightly decrease binding
                 "base_likeness": 0.79,
                 "dipole_base": 3.5,
                 "polar_base": 19.2,
@@ -232,7 +236,7 @@ class DeterministicQuantumChemistry:
                 "name": "Triazole Analog",
                 "modification": "Amide → Triazole bioisostere",
                 "base_gap": 4.1,
-                "base_affinity": -9.0,
+                "affinity_modifier": 0.4,  # Triazole bioisosteres often maintain binding
                 "base_likeness": 0.87,
                 "dipole_base": 2.6,
                 "polar_base": 16.1,
@@ -242,7 +246,7 @@ class DeterministicQuantumChemistry:
                 "name": "Sulfonamide Analog",
                 "modification": "Amide → Sulfonamide replacement",
                 "base_gap": 4.5,
-                "base_affinity": -8.7,
+                "affinity_modifier": 0.1,  # Sulfonamide can improve H-bonding
                 "base_likeness": 0.83,
                 "dipole_base": 3.8,
                 "polar_base": 20.1,
@@ -252,7 +256,7 @@ class DeterministicQuantumChemistry:
                 "name": "Thiophene Analog",
                 "modification": "Benzene → Thiophene replacement",
                 "base_gap": 4.6,
-                "base_affinity": -8.4,
+                "affinity_modifier": -0.2,  # Thiophene may slightly decrease binding
                 "base_likeness": 0.81,
                 "dipole_base": 2.9,
                 "polar_base": 17.8,
@@ -263,27 +267,29 @@ class DeterministicQuantumChemistry:
         for i in range(num_analogs):
             analog_type = analog_types[i % len(analog_types)]
             
-            # Calculate deterministic values based on base molecule and analog type
-            base_props = self._calculate_molecular_properties(base_mol)
+            # Calculate realistic binding affinity based on base molecule and analog type
+            realistic_binding = base_binding + analog_type["affinity_modifier"]
             
-            # Modify properties based on analog type
-            gap_modifier = 0.1 * i
-            affinity_modifier = -0.1 * i
-            likeness_modifier = -0.01 * i
+            # Ensure binding affinity is in realistic range (-3 to -15 kcal/mol)
+            realistic_binding = max(-15.0, min(-3.0, realistic_binding))
+            
+            # Calculate other properties with small variations
+            gap_modifier = 0.05 * i  # Small variation in HOMO-LUMO gap
+            likeness_modifier = -0.005 * i  # Small decrease in drug-likeness
             
             analog = {
                 "name": analog_type["name"],
                 "modification": analog_type["modification"],
                 "predicted_homo_lumo_gap": f"{analog_type['base_gap'] + gap_modifier:.1f}",
-                "binding_affinity": f"{analog_type['base_affinity'] + affinity_modifier:.1f} kcal/mol",
+                "binding_affinity": f"{realistic_binding:.1f} kcal/mol",
                 "drug_likeness": f"{analog_type['base_likeness'] + likeness_modifier:.2f}",
                 "properties": self._get_analog_properties(analog_type["name"]),
                 "rationale": self._get_analog_rationale(analog_type["name"]),
                 "quantum_advantage": self._get_quantum_advantage(analog_type["name"]),
                 "quantum_properties": {
-                    "dipole_moment": f"{analog_type['dipole_base'] + 0.1 * i:.1f} D",
-                    "polarizability": f"{analog_type['polar_base'] + 0.5 * i:.1f} Å³",
-                    "electrostatic_potential": f"{analog_type['esp_base'] + 0.01 * i:.2f} a.u."
+                    "dipole_moment": f"{analog_type['dipole_base'] + 0.05 * i:.1f} D",
+                    "polarizability": f"{analog_type['polar_base'] + 0.2 * i:.1f} Å³",
+                    "electrostatic_potential": f"{analog_type['esp_base'] + 0.005 * i:.2f} a.u."
                 }
             }
             
