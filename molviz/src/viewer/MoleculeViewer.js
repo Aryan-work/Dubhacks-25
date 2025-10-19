@@ -120,7 +120,12 @@ export default function MoleculeViewer() {
     function loadStructure(content, format) {
       const v = viewerRef.current;
       if (!v) return;
+      
+      console.log('Loading structure with format:', format, 'Content length:', content?.length);
+      
+      // Clear existing models
       v.clear();
+      
       try {
         // 3Dmol supports 'pdb' and 'mmcif'/'cif' in addModel
         let fmt = format || 'pdb';
@@ -130,17 +135,28 @@ export default function MoleculeViewer() {
           fmt = 'pdb';
         }
 
-        console.log('Loading structure with format:', fmt);
+        console.log('Adding model with format:', fmt);
         const model = v.addModel(content, fmt);
         currentModelRef.current = { model, content, format: fmt };
+        
+        // Set background and apply default representation
         v.setBackgroundColor(0x000000);
         applyRepresentation(v, 'cartoon');
+        
+        // Force immediate rendering with multiple render calls
         v.zoomTo();
         v.render();
+        
+        // Additional render call to ensure display
+        setTimeout(() => {
+          if (v && currentModelRef.current) {
+            v.render();
+            console.log('Structure loaded and rendered successfully');
+          }
+        }, 100);
 
-  // No auto-rotation
       } catch (err) {
-        console.error('failed to load structure', err);
+        console.error('Failed to load structure:', err);
         console.error('Format:', format, 'Content length:', content?.length);
       }
     }
@@ -160,15 +176,29 @@ export default function MoleculeViewer() {
 
       if (!v || !current || !representation) return;
 
+      console.log('Changing representation to:', representation);
+
       try {
-        v.clear();
-        const model = v.addModel(current.content, current.format);
-        currentModelRef.current = { ...current, model };
-        v.setBackgroundColor(0x000000);
+        // Don't clear the viewer, just change the style
+        v.setStyle({}, {});
+        v.removeAllSurfaces();
+        
+        // Apply new representation
         applyRepresentation(v, representation);
+        
+        // Force render with multiple calls
         v.render();
+        
+        // Additional render to ensure display
+        setTimeout(() => {
+          if (v && currentModelRef.current) {
+            v.render();
+            console.log('Representation changed successfully');
+          }
+        }, 50);
+        
       } catch (err) {
-        console.error('failed to update representation', err);
+        console.error('Failed to update representation:', err);
       }
     }
 
@@ -182,13 +212,28 @@ export default function MoleculeViewer() {
     function onLoadStructure(e) {
       const { content, format } = e.detail || {};
       if (!content) return;
+      console.log('Received loadStructure event:', { format, contentLength: content.length });
       loadStructure(content, format || 'pdb');
+    }
+
+    // Force refresh function to ensure immediate display
+    function forceRefresh() {
+      const v = viewerRef.current;
+      if (v && currentModelRef.current) {
+        console.log('Force refreshing viewer...');
+        v.render();
+        setTimeout(() => v.render(), 100);
+        setTimeout(() => v.render(), 300);
+      }
     }
 
     window.addEventListener('loadPDB', onLoadPDB);
     window.addEventListener('loadStructure', onLoadStructure);
     window.addEventListener('clearPDB', onClear);
     window.addEventListener('changeRepresentation', onChangeRepresentation);
+    
+    // Add a global force refresh function
+    window.forceViewerRefresh = forceRefresh;
 
     return () => {
       window.removeEventListener('loadPDB', onLoadPDB);

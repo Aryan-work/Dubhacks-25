@@ -101,6 +101,12 @@ export default function ViewerPage() {
         }
         const format = detectFormat(name, content);
         window.dispatchEvent(new CustomEvent('loadStructure', { detail: { content, name, format } }));
+        // Force refresh to ensure immediate display
+        setTimeout(() => {
+          if (window.forceViewerRefresh) {
+            window.forceViewerRefresh();
+          }
+        }, 200);
       }, 0);
     }
   }, [location.state]);
@@ -151,6 +157,12 @@ export default function ViewerPage() {
                   setFileName(`${pdbId}.cif`);
                   // Auto-load into viewer
                   window.dispatchEvent(new CustomEvent('loadStructure', { detail: { content: cifText, name: `${pdbId}.cif`, format: 'cif' } }));
+                  // Force refresh to ensure immediate display
+                  setTimeout(() => {
+                    if (window.forceViewerRefresh) {
+                      window.forceViewerRefresh();
+                    }
+                  }, 200);
                 } catch (err) {
                   console.error("Search error:", err);
                   setSearchError(err.message || 'Search failed.');
@@ -214,6 +226,12 @@ export default function ViewerPage() {
 
             const format = detectFormat(name, content);
             window.dispatchEvent(new CustomEvent('loadStructure', { detail: { content, name, format } }));
+            // Force refresh to ensure immediate display
+            setTimeout(() => {
+              if (window.forceViewerRefresh) {
+                window.forceViewerRefresh();
+              }
+            }, 200);
             window.dispatchEvent(new CustomEvent('changeRepresentation', { detail: representation }));
           }}>
             Load
