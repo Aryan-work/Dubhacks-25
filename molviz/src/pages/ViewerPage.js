@@ -5,12 +5,14 @@ import './ViewerPage.css';
 
 async function geminiFindPdbId(moleculeName) {
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
+  console.log("API Key loaded:", apiKey ? "Yes" : "No");
   if (!apiKey) {
     console.warn("Gemini API key not found. Please set REACT_APP_GEMINI_API_KEY in .env file");
     return null;
   }
 
   try {
+    console.log("Making request to Gemini API...");
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
@@ -24,13 +26,17 @@ async function geminiFindPdbId(moleculeName) {
         }]
       })
     });
+    
+    console.log("Gemini API response status:", response.status);
 
     if (!response.ok) {
       throw new Error(`API request failed: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log("Gemini API response data:", data);
     const result = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    console.log("Extracted result:", result);
     
     if (result && result !== "NOT_FOUND" && result.length === 4) {
       return result.toUpperCase();
@@ -107,18 +113,23 @@ export default function ViewerPage() {
             onClick={async () => {
               setSearchLoading(true);
               setSearchError('');
+              console.log("Starting search for:", searchName.trim());
               try {
                 const pdbId = await geminiFindPdbId(searchName.trim());
+                console.log("Found PDB ID:", pdbId);
                 if (!pdbId) throw new Error('No matching structure found.');
                 // Fetch mmCIF from RCSB
+                console.log("Fetching structure from RCSB...");
                 const cifResp = await fetch(`https://files.rcsb.org/download/${pdbId}.cif`);
                 if (!cifResp.ok) throw new Error('Failed to fetch mmCIF.');
                 const cifText = await cifResp.text();
+                console.log("Structure fetched, loading into viewer...");
                 setPdbText(cifText);
                 setFileName(`${pdbId}.cif`);
                 // Auto-load into viewer
                 window.dispatchEvent(new CustomEvent('loadStructure', { detail: { content: cifText, name: `${pdbId}.cif`, format: 'cif' } }));
               } catch (err) {
+                console.error("Search error:", err);
                 setSearchError(err.message || 'Search failed.');
               } finally {
                 setSearchLoading(false);
