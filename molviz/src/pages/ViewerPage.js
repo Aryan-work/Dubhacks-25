@@ -4,9 +4,43 @@ import MoleculeViewer from '../viewer/MoleculeViewer';
 import './ViewerPage.css';
 
 async function geminiFindPdbId(moleculeName) {
-  // Mock function - replace with actual API call if needed
-  console.log("Searching for PDB ID for:", moleculeName);
-  return null;
+  const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
+  if (!apiKey) {
+    console.warn("Gemini API key not found. Please set REACT_APP_GEMINI_API_KEY in .env file");
+    return null;
+  }
+
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `Find the PDB ID for the protein/molecule: "${moleculeName}". Return only the PDB ID (4 characters) or "NOT_FOUND" if no match. Examples: insulin -> 1INS, hemoglobin -> 1HHO, myoglobin -> 1MBN.`
+          }]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const result = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    
+    if (result && result !== "NOT_FOUND" && result.length === 4) {
+      return result.toUpperCase();
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Gemini API error:", error);
+    return null;
+  }
 }
 
 export default function ViewerPage() {
