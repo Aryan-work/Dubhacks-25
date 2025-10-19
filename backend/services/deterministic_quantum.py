@@ -168,7 +168,7 @@ class DeterministicQuantumChemistry:
                 "average": round((lowest_freq + highest_freq) / 2, 1)
             },
             "electrostatic_potential": round(electrostatic_potential, 3),
-            "total_energy_hartree": round(-50.0 - mol.GetNumAtoms() * 2.0, 3),
+            "total_energy_hartree": round(-50.0 - mol.GetNumAtoms() * 2.0, 0),
             "total_energy_ev": round((-50.0 - mol.GetNumAtoms() * 2.0) * 27.211, 3),
             "formation_energy_kcal_mol": round((-50.0 - mol.GetNumAtoms() * 2.0) * 627.509, 1)
         }

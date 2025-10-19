@@ -96,7 +96,7 @@ async def simulate_molecule(input_data: MolecularInput):
         )
         
         # Add frontend-expected field names with realistic values
-        quantum_results["total_energy_hartree"] = quantum_results.get("electronic_energy", -127.36)
+        quantum_results["total_energy_hartree"] = round(quantum_results.get("electronic_energy", -127.36), 0)
         quantum_results["total_energy_ev"] = quantum_results.get("electronic_energy", -127.36) * 27.2114  # Convert to eV
         quantum_results["formation_energy_kcal_mol"] = -45.2  # Realistic formation energy in kcal/mol
         quantum_results["binding_energy"] = -8.5  # Realistic binding energy in kcal/mol
