@@ -398,3 +398,30 @@ label[for="mol-name-search"] {
   border: 1px solid rgba(255, 107, 107, 0.3);
   border-radius: 6px;
 }
+
+/* Load Structure Button */
+.load-structure-btn {
+  background: linear-gradient(90deg, #4ef0ff, #0077ff);
+  color: #021018;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin: 10px 0;
+  width: 100%;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(78, 240, 255, 0.3);
+}
+
+.load-structure-btn:hover {
+  background: linear-gradient(90deg, #0077ff, #4ef0ff);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(78, 240, 255, 0.4);
+}
+
+.load-structure-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(78, 240, 255, 0.3);
+}

@@ -203,6 +203,45 @@ export default function ViewerPage() {
           onChange={(e) => setPdbText(e.target.value)}
           placeholder="Paste PDB or mmCIF content here"
         />
+        <button 
+          className="load-structure-btn"
+          onClick={() => {
+            const content = pdbText;
+            const name = fileName;
+            if (!content.trim()) {
+              alert('Please paste structure content or upload a file first');
+              return;
+            }
+            // Get selected representation
+            const repSelect = document.getElementById('representation');
+            const representation = repSelect ? repSelect.value : 'cartoon';
+            // basic format detection by filename or content
+            function detectFormat(name, text) {
+              if (name) {
+                const ext = name.split('.').pop().toLowerCase();
+                if (ext === 'cif' || ext === 'mmcif') return 'cif';
+                if (ext === 'pdb' || ext === 'ent' || ext === 'txt') return 'pdb';
+              }
+              const t = (text || '').trim();
+              if (!t) return 'pdb';
+              if (t.startsWith('data_') || t.includes('_atom_site.')) return 'cif';
+              if (t.split('\n')[0].startsWith('HEADER') || t.includes('ATOM') || t.includes('HETATM')) return 'pdb';
+              return 'pdb';
+            }
+
+            const format = detectFormat(name, content);
+            window.dispatchEvent(new CustomEvent('loadStructure', { detail: { content, name, format } }));
+            // Force refresh to ensure immediate display
+            setTimeout(() => {
+              if (window.forceViewerRefresh) {
+                window.forceViewerRefresh();
+              }
+            }, 200);
+            window.dispatchEvent(new CustomEvent('changeRepresentation', { detail: representation }));
+          }}
+        >
+          🧬 Load Structure
+        </button>
         <div className="buttons">
           <button onClick={() => {
             const content = pdbText;
