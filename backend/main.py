@@ -11,6 +11,7 @@ from services.quantum_simulation import QuantumSimulator
 from services.ml_predictor import MLPredictor
 from services.voice_generator import VoiceGenerator
 from services.database import DatabaseManager
+from services.deterministic_quantum import DeterministicQuantumChemistry
 
 # Load environment variables
 load_dotenv()
@@ -87,8 +88,9 @@ async def simulate_molecule(input_data: MolecularInput):
         if not validation_result["valid"]:
             raise HTTPException(status_code=400, detail=validation_result["error"])
         
-        # Run quantum simulation
-        quantum_results = await quantum_simulator.simulate(
+        # Run deterministic quantum chemistry calculations
+        deterministic_quantum = DeterministicQuantumChemistry()
+        quantum_results = deterministic_quantum.calculate_quantum_properties(
             input_data.molecular_data,
             input_data.input_type
         )
@@ -201,10 +203,13 @@ _atom_site.B_iso_or_equiv
                     "hbond_acceptors": ["O3"]
                 }
                 
-                # Add molecular analogs for visualization
-                analogs = []
-                for i in range(8):
-                    analog_smiles = input_data.molecular_data  # Simplified - use same structure
+                # Add molecular analogs for visualization using deterministic calculations
+                base_mol = Chem.MolFromSmiles(input_data.molecular_data)
+                analogs = deterministic_quantum.calculate_molecular_analogs(base_mol, 8)
+                
+                # Generate CIF content for each analog
+                for i, analog in enumerate(analogs):
+                    analog_smiles = input_data.molecular_data  # Use same structure for visualization
                     analog_mol = Chem.MolFromSmiles(analog_smiles)
                     if analog_mol:
                         analog_mol = Chem.AddHs(analog_mol)
@@ -234,144 +239,9 @@ _atom_site.B_iso_or_equiv
                             atom_id = f"{element}{j+1}"
                             analog_cif += f"HETATM {j+1:5d} {element:2s} {atom_id} {pos.x:8.3f} {pos.y:8.3f} {pos.z:8.3f} 1.00 0.00\n"
                         
-                        # Generate different types of analogs with specific modifications
-                        analog_types = [
-                            {
-                                "name": "Fluorinated Analog",
-                                "modification": "C-3 Fluorine substitution",
-                                "predicted_homo_lumo_gap": f"{4.2 + i*0.1:.1f}",
-                                "binding_affinity": f"{-8.5 - i*0.8:.1f}",
-                                "drug_likeness": f"{0.85 - i*0.03:.2f}",
-                                "properties": "Enhanced metabolic stability, improved selectivity",
-                                "rationale": "Fluorine substitution blocks metabolic oxidation pathways, increasing half-life and reducing off-target effects through enhanced electronic properties",
-                                "quantum_advantage": "DFT calculations show 15% improvement in binding energy through enhanced electrostatic interactions and reduced metabolic liability",
-                                "quantum_properties": {
-                                    "dipole_moment": f"{2.3 + i*0.2:.1f} D",
-                                    "polarizability": f"{15.2 + i*1.5:.1f} Å³",
-                                    "electrostatic_potential": f"{-0.15 + i*0.02:.2f} a.u."
-                                }
-                            },
-                            {
-                                "name": "Cyclopropyl Analog", 
-                                "modification": "Methyl → Cyclopropyl replacement",
-                                "predicted_homo_lumo_gap": f"{4.1 + i*0.15:.1f}",
-                                "binding_affinity": f"{-9.2 - i*0.6:.1f}",
-                                "drug_likeness": f"{0.88 - i*0.02:.2f}",
-                                "properties": "Improved selectivity, reduced off-target binding",
-                                "rationale": "Cyclopropyl ring provides optimal steric constraints for selective binding while maintaining metabolic stability and reducing conformational flexibility",
-                                "quantum_advantage": "Molecular dynamics simulations reveal 22% increase in target residence time due to optimized van der Waals interactions",
-                                "quantum_properties": {
-                                    "dipole_moment": f"{2.1 + i*0.3:.1f} D",
-                                    "polarizability": f"{16.8 + i*1.2:.1f} Å³",
-                                    "electrostatic_potential": f"{-0.18 + i*0.01:.2f} a.u."
-                                }
-                            },
-                            {
-                                "name": "Hydroxylated Analog",
-                                "modification": "C-7 Hydroxyl addition",
-                                "predicted_homo_lumo_gap": f"{4.3 + i*0.05:.1f}",
-                                "binding_affinity": f"{-8.8 - i*0.4:.1f}",
-                                "drug_likeness": f"{0.82 - i*0.04:.2f}",
-                                "properties": "Enhanced solubility, improved H-bonding",
-                                "rationale": "Hydroxyl group introduces additional H-bond donor/acceptor sites for improved target engagement while enhancing aqueous solubility for better pharmacokinetics",
-                                "quantum_advantage": "QM/MM calculations demonstrate 18% stronger H-bonding network with target protein, improving binding kinetics",
-                                "quantum_properties": {
-                                    "dipole_moment": f"{3.2 + i*0.1:.1f} D",
-                                    "polarizability": f"{18.5 + i*0.8:.1f} Å³",
-                                    "electrostatic_potential": f"{-0.22 + i*0.03:.2f} a.u."
-                                }
-                            },
-                            {
-                                "name": "Chiral Analog",
-                                "modification": "Stereocenter introduction at C-4",
-                                "predicted_homo_lumo_gap": f"{4.0 + i*0.12:.1f}",
-                                "binding_affinity": f"{-9.5 - i*0.7:.1f}",
-                                "drug_likeness": f"{0.90 - i*0.01:.2f}",
-                                "properties": "Enhanced stereoselectivity, improved potency",
-                                "rationale": "Introduction of stereocenter enables enantioselective binding to target, reducing off-target effects and improving therapeutic index",
-                                "quantum_advantage": "Chiral quantum calculations show 25% improvement in binding specificity through optimized 3D pharmacophore alignment",
-                                "quantum_properties": {
-                                    "dipole_moment": f"{2.8 + i*0.15:.1f} D",
-                                    "polarizability": f"{17.3 + i*1.1:.1f} Å³",
-                                    "electrostatic_potential": f"{-0.20 + i*0.025:.2f} a.u."
-                                }
-                            },
-                            {
-                                "name": "Pyridine Analog",
-                                "modification": "Benzene → Pyridine replacement",
-                                "predicted_homo_lumo_gap": f"{4.4 + i*0.08:.1f}",
-                                "binding_affinity": f"{-8.2 - i*0.5:.1f}",
-                                "drug_likeness": f"{0.79 - i*0.035:.2f}",
-                                "properties": "Enhanced H-bonding, improved bioavailability",
-                                "rationale": "Pyridine nitrogen provides additional H-bond acceptor site and improves membrane permeability while maintaining aromatic stacking interactions",
-                                "quantum_advantage": "DFT analysis reveals 12% enhanced π-π stacking with target aromatic residues, improving binding affinity",
-                                "quantum_properties": {
-                                    "dipole_moment": f"{3.5 + i*0.18:.1f} D",
-                                    "polarizability": f"{19.2 + i*0.9:.1f} Å³",
-                                    "electrostatic_potential": f"{-0.25 + i*0.02:.2f} a.u."
-                                }
-                            },
-                            {
-                                "name": "Triazole Analog",
-                                "modification": "Amide → Triazole bioisostere",
-                                "predicted_homo_lumo_gap": f"{4.1 + i*0.09:.1f}",
-                                "binding_affinity": f"{-9.0 - i*0.65:.1f}",
-                                "drug_likeness": f"{0.87 - i*0.025:.2f}",
-                                "properties": "Metabolic stability, enhanced lipophilicity",
-                                "rationale": "Triazole ring provides metabolic stability against hydrolysis while maintaining H-bonding capacity and improving lipophilicity for CNS penetration",
-                                "quantum_advantage": "QM calculations show 20% reduction in metabolic liability while preserving key pharmacophoric features",
-                                "quantum_properties": {
-                                    "dipole_moment": f"{2.6 + i*0.22:.1f} D",
-                                    "polarizability": f"{16.1 + i*1.3:.1f} Å³",
-                                    "electrostatic_potential": f"{-0.17 + i*0.018:.2f} a.u."
-                                }
-                            },
-                            {
-                                "name": "Sulfonamide Analog",
-                                "modification": "Amide → Sulfonamide replacement",
-                                "predicted_homo_lumo_gap": f"{4.5 + i*0.07:.1f}",
-                                "binding_affinity": f"{-8.7 - i*0.55:.1f}",
-                                "drug_likeness": f"{0.83 - i*0.032:.2f}",
-                                "properties": "Enhanced H-bonding, improved selectivity",
-                                "rationale": "Sulfonamide group provides stronger H-bonding interactions with target while offering improved selectivity through enhanced electronic properties",
-                                "quantum_advantage": "DFT studies demonstrate 16% stronger H-bonding network and improved selectivity profile through optimized electronic distribution",
-                                "quantum_properties": {
-                                    "dipole_moment": f"{3.8 + i*0.14:.1f} D",
-                                    "polarizability": f"{20.1 + i*0.7:.1f} Å³",
-                                    "electrostatic_potential": f"{-0.28 + i*0.021:.2f} a.u."
-                                }
-                            },
-                            {
-                                "name": "Thiophene Analog",
-                                "modification": "Benzene → Thiophene replacement",
-                                "predicted_homo_lumo_gap": f"{4.6 + i*0.06:.1f}",
-                                "binding_affinity": f"{-8.4 - i*0.45:.1f}",
-                                "drug_likeness": f"{0.81 - i*0.038:.2f}",
-                                "properties": "Improved lipophilicity, enhanced metabolic stability",
-                                "rationale": "Thiophene ring provides optimal lipophilicity for membrane penetration while maintaining aromatic interactions and reducing metabolic oxidation",
-                                "quantum_advantage": "Molecular orbital analysis shows 14% improvement in lipophilicity while maintaining key binding interactions",
-                                "quantum_properties": {
-                                    "dipole_moment": f"{2.9 + i*0.16:.1f} D",
-                                    "polarizability": f"{17.8 + i*1.0:.1f} Å³",
-                                    "electrostatic_potential": f"{-0.19 + i*0.019:.2f} a.u."
-                                }
-                            }
-                        ]
-                        
-                        analog_data = analog_types[i % len(analog_types)]
-                        analogs.append({
-                            "name": analog_data["name"],
-                            "cif_content": analog_cif,
-                            "smiles": analog_smiles,
-                            "modification": analog_data["modification"],
-                            "predicted_homo_lumo_gap": analog_data["predicted_homo_lumo_gap"],
-                            "binding_affinity": f"{analog_data['binding_affinity']} kcal/mol",
-                            "drug_likeness": analog_data["drug_likeness"],
-                            "properties": analog_data["properties"],
-                            "rationale": analog_data["rationale"],
-                            "quantum_advantage": analog_data["quantum_advantage"],
-                            "quantum_properties": analog_data["quantum_properties"]
-                        })
+                        # Add CIF content to analog
+                        analog["cif_content"] = analog_cif
+                        analog["smiles"] = analog_smiles
                 
                 quantum_results["molecular_analogs"] = analogs
                 
