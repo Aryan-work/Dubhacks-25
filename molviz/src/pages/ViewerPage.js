@@ -6,9 +6,31 @@ import './ViewerPage.css';
 async function geminiFindPdbId(moleculeName) {
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
   console.log("API Key loaded:", apiKey ? "Yes" : "No");
+  console.log("Searching for molecule:", moleculeName);
+  
   if (!apiKey) {
     console.warn("Gemini API key not found. Please set REACT_APP_GEMINI_API_KEY in .env file");
     return null;
+  }
+
+  // Simple hardcoded mapping for testing
+  const moleculeMap = {
+    'insulin': '1INS',
+    'hemoglobin': '1HHO', 
+    'myoglobin': '1MBN',
+    'lysozyme': '1LYZ',
+    'cytochrome': '1HRC',
+    'catalase': '1DGF',
+    'albumin': '1AO6',
+    'collagen': '1BKV'
+  };
+
+  const lowerName = moleculeName.toLowerCase();
+  for (const [key, pdbId] of Object.entries(moleculeMap)) {
+    if (lowerName.includes(key)) {
+      console.log("Found PDB ID from mapping:", pdbId);
+      return pdbId;
+    }
   }
 
   try {
@@ -137,6 +159,16 @@ export default function ViewerPage() {
             }}
           >
             {searchLoading ? 'Searching...' : 'Find & Load'}
+          </button>
+          <button
+            className='test-btn'
+            onClick={() => {
+              setSearchName('insulin');
+              console.log("Test button clicked - set search to insulin");
+            }}
+            style={{marginLeft: '10px', backgroundColor: '#28a745', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px'}}
+          >
+            Test (Insulin)
           </button>
           {searchError && <div className="search-error">{searchError}</div>}
         </div>
