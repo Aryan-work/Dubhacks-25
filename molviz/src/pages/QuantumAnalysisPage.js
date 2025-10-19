@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, Zap, Brain, Target, Play, Volume2, Settings, BarChart3, Atom, Clock, Eye } from 'lucide-react';
+import { Upload, FileText, Zap, Brain, Target, Play, Volume2, BarChart3, Atom, Eye } from 'lucide-react';
 import './QuantumAnalysisPage.css';
 import MoleculeViewer from '../viewer/MoleculeViewer';
 
@@ -30,11 +30,9 @@ function QuantumAnalysisPage() {
   // Interactive quantum spectroscopy
   const [spectroscopyMode, setSpectroscopyMode] = useState('absorption');
   const [timeEvolution, setTimeEvolution] = useState({ enabled: false, timeRange: [0, 10] });
-  const [selectedOrbitals, setSelectedOrbitals] = useState([]);
   
   // Visualization data
   const [spectrumData, setSpectrumData] = useState(null);
-  const [orbitalData, setOrbitalData] = useState(null);
   const [dynamicsData, setDynamicsData] = useState(null);
   const [currentRepresentation, setCurrentRepresentation] = useState('ballstick');
   const analogViewersRef = useRef({});
@@ -149,22 +147,6 @@ function QuantumAnalysisPage() {
     try {
       // Generate molecule-specific AI summary
       const molecularData = molecularInput.toLowerCase();
-      let moleculeName = "Your molecule";
-      let specificInsights = "";
-      
-      if (molecularData.includes('c1=cc=cc=c1') || molecularData.includes('benzene')) {
-        moleculeName = "Benzene";
-        specificInsights = "Benzene's aromatic π-system shows excellent electronic delocalization with strong quantum coherence. The HOMO-LUMO gap indicates good stability for organic electronics applications.";
-      } else if (molecularData.includes('c=c') || molecularData.includes('ethylene')) {
-        moleculeName = "Ethylene";
-        specificInsights = "Ethylene's π-bond system exhibits strong quantum correlation effects. The electronic structure suggests potential for polymerization reactions and organic synthesis.";
-      } else if (molecularData.includes('c=o') || molecularData.includes('formaldehyde')) {
-        moleculeName = "Formaldehyde";
-        specificInsights = "Formaldehyde's carbonyl group creates a polar electronic environment with interesting quantum mechanical properties. The molecule shows potential for nucleophilic addition reactions.";
-      } else {
-        moleculeName = "Your molecule";
-        specificInsights = "This molecule shows high stability and a strong predicted binding to the BCR-ABL kinase domain—a known driver in chronic myeloid leukemia. Its aromatic core and amide linkage are well-suited for kinase inhibition. Consider optimizing the side chains for selectivity if targeting other cancer types.";
-      }
 
       const summary = ``;
       
@@ -187,10 +169,7 @@ function QuantumAnalysisPage() {
       });
     }
     
-    // Update orbital data
-    if (results.quantum_results?.molecular_orbitals) {
-      setOrbitalData(results.quantum_results.molecular_orbitals);
-    }
+    // Update orbital data (removed unused orbitalData state)
     
     // Update dynamics data
     if (results.quantum_results?.dynamics) {

@@ -1,27 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import MoleculeViewer from '../viewer/MoleculeViewer';
-import { GoogleGenAI } from "@google/genai";
 import './ViewerPage.css';
 
-const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-const ai = new GoogleGenAI({apiKey});
-
 async function geminiFindPdbId(moleculeName) {
-  const prompt = `You are an expert in molecular databases. Given the molecule name "${moleculeName}", find the most likely RCSB PDB ID (4-character code) for a structure in the RCSB Protein Data Bank. Only return the PDB ID, nothing else.
-If you cannot find a relevant PDB ID, return "NONE".
-`;
-
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-  });
-
-  const text = response.text;
-  const match = text.match(/\b([0-9A-Za-z]{4})\b/);
-  if (match && match[1] && match[1].toUpperCase() !== "NONE") {
-    return match[1].toUpperCase();
-  }
+  // Mock function - replace with actual API call if needed
+  console.log("Searching for PDB ID for:", moleculeName);
   return null;
 }
 
